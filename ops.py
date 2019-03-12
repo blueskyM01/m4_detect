@@ -169,34 +169,6 @@ def m4_res_block(input_, n_filters, k_sizes, s_sizes, padding='SAME', stddev=0.0
         conv = m4_batch_norm(conv, is_trainable)
         return conv
     
-def m4_VGG(input_,name='VGG'):
-    with tf.variable_scope(name):
-        conv1 = m4_conv_moudel(input_, 32, k_h=3, k_w=3, s_h=1, s_w=1, stddev=0.02, padding="SAME",
-                               active_function='leak_relu',
-                               norm='batch_norm', is_trainable=True, do_active=True, name='conv1')
-        pool1 = tf.nn.max_pool(conv1, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME', name='pool1')  # 125x125x32
-        conv2 = m4_conv_moudel(pool1, 64, k_h=3, k_w=3, s_h=1, s_w=1, stddev=0.02, padding="SAME",
-                               active_function='leak_relu',
-                               norm='batch_norm', is_trainable=True, do_active=True, name='conv2')
-        pool2 = tf.nn.max_pool(conv2, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME', name='pool2')  # 63x63x64
-
-        conv3 = m4_conv_moudel(pool2, 64, k_h=3, k_w=3, s_h=1, s_w=1, stddev=0.02, padding="SAME",
-                               active_function='leak_relu',
-                               norm='batch_norm', is_trainable=True, do_active=True, name='conv3')
-        pool3 = tf.nn.max_pool(conv3, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME', name='pool2')  # 32x32x64
-
-        conv4 = m4_conv_moudel(pool3, 128, k_h=3, k_w=3, s_h=1, s_w=1, stddev=0.02, padding="SAME",
-                               active_function='leak_relu',
-                               norm='batch_norm', is_trainable=True, do_active=True, name='conv4')# 32x32x128
-        conv5 = m4_conv_moudel(conv4, 128, k_h=3, k_w=3, s_h=1, s_w=1, stddev=0.02, padding="SAME",
-                               active_function='leak_relu',
-                               norm='batch_norm', is_trainable=True, do_active=True, name='conv5')# 32x32x128
-
-        conv6 = m4_conv_moudel(conv5, 128, k_h=3, k_w=3, s_h=2, s_w=2, stddev=0.02, padding="SAME",
-                               active_function='leak_relu',
-                               norm='batch_norm', is_trainable=True, do_active=True, name='conv6')# 16x16x128
-        return conv5, tf.reduce_mean(conv6)
-
 
 
 def m4_average_grads(tower):

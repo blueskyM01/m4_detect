@@ -3,7 +3,7 @@ import os
 import argparse
 import tensorflow as tf
 import param
-from model import my_gan
+from model import my_yolo3
 import time
 
 
@@ -24,65 +24,29 @@ parser.add_argument("--dataset_dir", default=param.dataset_dir, type=str, help="
 parser.add_argument("--dataset_name", default=param.dataset_name, type=str, help="Train data set name")
 parser.add_argument("--datalabel_dir", default=param.datalabel_dir, type=str, help="Train data label dir")
 parser.add_argument("--datalabel_name", default=param.datalabel_name, type=str, help="Train data label name")
-parser.add_argument("--face_model_dir", default=param.face_model_dir, type=str, help="face model dir")
-parser.add_argument("--face_model_name", default=param.face_model_name, type=str, help="face model name")
-parser.add_argument("--BE_GAN_model_dir", default=param.BE_GAN_model_dir, type=str, help="BE_GAN_model_dir")
-parser.add_argument("--BE_GAN_model_name", default=param.BE_GAN_model_name, type=str, help="BE_GAN_model_name")
+parser.add_argument("--achorfile_path", default=param.achorfile_path, type=str, help="achor file path")
+parser.add_argument("--class_path", default=param.class_path, type=str, help="class file path")
+
 
 parser.add_argument("--log_dir", default=param.log_dir, type=str, help="Train data label name")
-parser.add_argument("--sampel_save_dir", default=param.sampel_save_dir, type=str, help="sampel save dir")
 parser.add_argument("--checkpoint_dir", default=param.checkpoint_dir, type=str, help="model save dir")
-parser.add_argument("--test_sample_save_dir", default=param.test_sample_save_dir, type=str, help="test sample save dir")
 parser.add_argument("--num_gpus", default=param.num_gpus, type=int, help="num of gpu")
 parser.add_argument("--epoch", default=param.epoch, type=int, help="epoch")
 parser.add_argument("--batch_size", default=param.batch_size, type=int, help="batch size for one gpus")
-parser.add_argument("--z_dim", default=param.z_dim, type=int, choices=[64, 128], help="dim of noise")
-parser.add_argument("--conv_hidden_num", default=param.conv_hidden_num, type=int, choices=[64, 128],
-                    help="conv_hidden_num")
-parser.add_argument("--data_format", default=param.data_format, type=str, help="data_format")
-parser.add_argument("--g_lr", default=param.g_lr, type=float, help="learning rate of G")
-parser.add_argument("--d_lr", default=param.d_lr, type=float, help="learning rate of D")
+parser.add_argument("--num_classes", default=param.num_classes, type=int, help="number of classes")
+parser.add_argument("--max_boxes", default=param.max_boxes, type=int, help="max boxes")
+parser.add_argument("--input_shape", default=param.input_shape, type=int, help="the width and height of image are all input_shape")
+
 parser.add_argument("--lr_lower_boundary", default=param.lr_lower_boundary, type=float, help="lower learning rate")
-parser.add_argument("--gamma", default=param.gamma, type=float, help="gamma")
-parser.add_argument("--lambda_k", default=param.lambda_k, type=float, help="lambda_k")
-parser.add_argument("--saveimage_period", default=param.saveimage_period, type=int, help="saveimage_period")
-parser.add_argument("--saveimage_idx", default=param.saveimage_idx, type=int, help="saveimage_idx")
+
+
+
 parser.add_argument("--savemodel_period", default=param.savemodel_period, type=int, help="savemodel_period")
 parser.add_argument("--add_summary_period", default=param.add_summary_period, type=int, help="add_summary_period")
 parser.add_argument("--lr_drop_period", default=param.lr_drop_period, type=int, help="lr_drop_period")
-parser.add_argument("--lambda_s", default=param.lambda_s, type=float, help="weight of shape loss")
-parser.add_argument("--lambda_e", default=param.lambda_e, type=float, help="weight of expression loss")
-parser.add_argument("--lambda_p", default=param.lambda_p, type=float, help="weight of pose loss")
-parser.add_argument("--lambda_id", default=param.lambda_id, type=float, help="weight of ID loss")
 
 
 
-
-# -----------------------------m4_BE_GAN_network-----------------------------
-
-# -----------------------------expression,shape,pose-----------------------------
-parser.add_argument("--mesh_folder", default=param.mesh_folder, type=str, help="mesh_folder")
-parser.add_argument("--train_imgs_mean_file_path", default=param.train_imgs_mean_file_path, type=str,
-                    help="Load perturb_Oxford_train_imgs_mean.npz")
-parser.add_argument("--train_labels_mean_std_file_path", default=param.train_labels_mean_std_file_path, type=str,
-                    help="Load perturb_Oxford_train_labels_mean_std.npz")
-parser.add_argument("--ThreeDMM_shape_mean_file_path", default=param.ThreeDMM_shape_mean_file_path, type=str,
-                    help="Load 3DMM_shape_mean.npy")
-parser.add_argument("--PAM_frontal_ALexNet_file_path", default=param.PAM_frontal_ALexNet_file_path, type=str,
-                    help="Load PAM_frontal_ALexNet.npy")
-parser.add_argument("--ShapeNet_fc_weights_file_path", default=param.ShapeNet_fc_weights_file_path, type=str,
-                    help="Load ShapeNet_fc_weights.npz")
-parser.add_argument("--ExpNet_fc_weights_file_path", default=param.ExpNet_fc_weights_file_path, type=str,
-                    help="Load ResNet/ExpNet_fc_weights.npz")
-parser.add_argument("--fpn_new_model_ckpt_file_path", default=param.fpn_new_model_ckpt_file_path, type=str,
-                    help="Load model_0_1.0_1.0_1e-07_1_16000.ckpt")
-parser.add_argument("--Shape_Model_file_path", default=param.Shape_Model_file_path, type=str,
-                    help="Load ini_ShapeTextureNet_model.ckpt")
-parser.add_argument("--Expression_Model_file_path", default=param.Expression_Model_file_path, type=str,
-                    help="Load ini_exprNet_model.ckpt")
-parser.add_argument("--BaselFaceModel_mod_file_path", default=param.BaselFaceModel_mod_file_path, type=str,
-                    help="Load BaselFaceModel_mod.mat")
-# -----------------------------expression,shape,pose-----------------------------
 
 cfg = parser.parse_args()
 
@@ -94,23 +58,14 @@ if __name__ == '__main__':
     config.gpu_options.allow_growth = True
     # config.gpu_options.per_process_gpu_memory_fraction = 0.9
     with tf.Session(config=config) as sess:
-
-
-        # if not os.path.exists(cfg.mesh_folder):
-        #     os.makedirs(cfg.mesh_folder)
-        my_gan = my_gan(sess, cfg)
+        my_yolo3 = my_yolo3(sess, cfg)
         if cfg.is_train:
             if not os.path.exists(cfg.log_dir):
                 os.makedirs(cfg.log_dir)
-            if not os.path.exists(cfg.sampel_save_dir):
-                os.makedirs(cfg.sampel_save_dir)
             if not os.path.exists(cfg.checkpoint_dir):
                 os.makedirs(cfg.checkpoint_dir)
-
-            my_gan.train()
+            my_yolo3.train()
         else:
             print('test starting ....')
             time.sleep(3)
-            if not os.path.exists(cfg.test_sample_save_dir):
-                os.makedirs(cfg.test_sample_save_dir)
-            my_gan.test()
+            my_yolo3.test()

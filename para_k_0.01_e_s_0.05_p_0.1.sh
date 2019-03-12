@@ -1,5 +1,5 @@
 python run_this.py \
---gpu_assign='1' \
+--gpu_assign='0' \
 --is_train=True \
 --log_dir='/media/yang/F/ubuntu/SD_GAN_Result/train on ms1s/logs' \
 --sampel_save_dir='/media/yang/F/ubuntu/SD_GAN_Result/train on ms1s/samples' \
