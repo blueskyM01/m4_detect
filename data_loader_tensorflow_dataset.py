@@ -274,13 +274,14 @@ class m4_ReadData:
         image_decoded = tf.image.decode_jpeg(image_string, 3)
         image_decoded = tf.image.convert_image_dtype(image_decoded, dtype=tf.float32) # 0-1
         # 预处理图像
-        # pre_image, pre_boxes = self.m4_Preprocess(image_decoded, boxes_data_tensor_available) # input_shape x input_shape
+        pre_image, pre_boxes = self.m4_Preprocess(image_decoded, boxes_data_tensor_available) # input_shape x input_shape
+        # make label of yolo
         # bbox_true_13, bbox_true_26, bbox_true_52 = tf.py_func(self.Preprocess_true_boxes, [pre_boxes],
         #                                                       [tf.float32, tf.float32, tf.float32])
 
         # return pre_image, pre_boxes, bbox_true_13, bbox_true_26, bbox_true_52
 
-        return image_decoded, boxes_data_tensor_available
+        return pre_image, pre_boxes
 
 
     def data_loader(self):
