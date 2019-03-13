@@ -50,33 +50,62 @@ class my_yolo3:
                               max_boxes=self.cfg.max_boxes, input_shape=self.cfg.input_shape, batch_size=self.cfg.batch_size,
                               epoch=self.cfg.epoch, buffer_size=10000)
         one_element, dataset_size = m4_DataReader.data_loader()
-        image_decoded, boxes_data_tensor_available = self.sess.run(one_element)
+        # image_decoded, boxes_data_available, bbox_true_13, bbox_true_26, bbox_true_52 = self.sess.run(one_element)
+        image_decoded, boxes_data_available = self.sess.run(one_element)
 
-        img = image_decoded[0].astype(np.uint8)
+
+        print(boxes_data_available[0])
+
+        img = (image_decoded[0] * 255.0).astype(np.uint8)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
-        for idx in range(boxes_data_tensor_available[0].shape[0]):
-            tl = (int(boxes_data_tensor_available[0][idx][0]), int(boxes_data_tensor_available[0][idx][1]))
-            br = (int(boxes_data_tensor_available[0][idx][2]), int(boxes_data_tensor_available[0][idx][3]))
-            # cv2.putText(image_decoded[0], self.class_names[int(boxes_data_tensor_available[0][idx][4])], tl, font, 0.5, (255, 0, 0), 1)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for idx in range(boxes_data_available[0].shape[0]):
+            tl = (int(boxes_data_available[0][idx][0]), int(boxes_data_available[0][idx][1]))
+            br = (int(boxes_data_available[0][idx][2]), int(boxes_data_available[0][idx][3]))
+            cv2.putText(img, str(int(boxes_data_available[0][idx][4])), tl, font, 0.5, (255, 0, 0), 1)
             cv2.rectangle(img, tl, br, (0, 0, 255), 2)
 
         cv2.imshow('show', img)
         cv2.waitKey(0)
 
-        print(image_decoded[0])
-        print(boxes_data_tensor_available[0])
+        # font = cv2.FONT_HERSHEY_SIMPLEX
+        # for img in image_decoded:
+        #     img = (img * 255.0).astype(np.uint8)
+        #     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
+        #     for boxes in boxes_data_available:
+        #         for box in boxes:
+        #             tl = (int(box[0]), int(box[1]))
+        #             br = (int(box[2]), int(box[3]))
+        #             cv2.putText(img, str(int(box[4])), tl, font, 0.5, (255, 0, 0), 1)
+        #             cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+        #
+        #     cv2.imshow('show', img)
+        # cv2.waitKey(0)
 
 
-        # image_data_tensor = m4_DataReader.image_data_tensor
-        # boxes_data_tensor = m4_DataReader.boxes_data_tensor
-        # hahah,aaaa = self.sess.run([image_data_tensor[0], boxes_data_tensor[0]])
-        # print(hahah)
-        # print(aaaa)
+        # for ix in range(image_decoded.shape[0]):
+        #     img = (image_decoded[ix] * 255.0).astype(np.uint8)
+        #     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
+        #
+        #     for i in range(13):
+        #         for j in range(13):
+        #             for n in range(3):
+        #                 print(bbox_true_13[ix][i][j][2])
+        #                 x_min = bbox_true_13[ix][i][j][n][0] * 416.
+        #                 y_min = bbox_true_13[ix][i][j][n][1] * 416.
+        #                 x_max = x_min + bbox_true_13[ix][i][j][n][2] * 416.
+        #                 y_max = y_min + bbox_true_13[ix][i][j][n][3] * 416.
+        #
+        #                 tl = (int(x_min), int(y_min))
+        #                 br = (int(x_max), int(y_max))
+        #                 # cv2.putText(image_decoded[0], self.class_names[int(boxes_data_tensor_available[0][idx][4])], tl, font, 0.5, (255, 0, 0), 1)
+        #                 cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+        #
+        #     cv2.imshow(str(ix), img)
+        # cv2.waitKey(0)
 
-        # anchors = m4_DataReader.anchors
-        # classes = m4_DataReader.class_names
-        # print(anchors)
-        # print(classes)
+
+
 
 
 
