@@ -51,36 +51,62 @@ class my_yolo3:
                               epoch=self.cfg.epoch, buffer_size=10000)
         one_element, dataset_size = m4_DataReader.data_loader()
         image_decoded, boxes_data_available, bbox_true_13, bbox_true_26, bbox_true_52 = self.sess.run(one_element)
-        # image_decoded, boxes_data_available = self.sess.run(one_element)
 
-
-        print(boxes_data_available[0])
-
-        img = (image_decoded[0] * 255.0).astype(np.uint8)
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
+        counter = 0
         font = cv2.FONT_HERSHEY_SIMPLEX
-        for idx in range(boxes_data_available[0].shape[0]):
-            tl = (int(boxes_data_available[0][idx][0]), int(boxes_data_available[0][idx][1]))
-            br = (int(boxes_data_available[0][idx][2]), int(boxes_data_available[0][idx][3]))
-            cv2.putText(img, str(int(boxes_data_available[0][idx][4])), tl, font, 0.5, (255, 0, 0), 1)
-            cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+        for img, label_13, label_26, label_52 in zip(image_decoded, bbox_true_13, bbox_true_26, bbox_true_52):
+            counter += 1
+            img = (img * 255.0).astype(np.uint8)
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
+            for y_idx in range(label_13.shape[0]):
+                for x_idx in range(label_13.shape[1]):
+                    for anchor_idx in range(label_13.shape[2]):
+                        y_center = label_13[y_idx][x_idx][anchor_idx][1] * 416.0
+                        x_center = label_13[y_idx][x_idx][anchor_idx][0] * 416.0
+                        y_min = y_center - label_13[y_idx][x_idx][anchor_idx][3] * 416.0 / 2.0
+                        x_min = x_center - label_13[y_idx][x_idx][anchor_idx][2] * 416.0 / 2.0
+                        y_max = y_center + label_13[y_idx][x_idx][anchor_idx][3] * 416.0 / 2.0
+                        x_max = x_center + label_13[y_idx][x_idx][anchor_idx][2] * 416.0 / 2.0
+                        tl = (int(x_min), int(y_min))
+                        br = (int(x_max), int(y_max))
+                        # cv2.putText(img, str(int(box[4])), tl, font, 0.5, (255, 0, 0), 1)
+                        cv2.rectangle(img, tl, br, (0, 0, 255), 2)
 
-        cv2.imshow('show', img)
+            for y_idx in range(label_26.shape[0]):
+                for x_idx in range(label_26.shape[1]):
+                    for anchor_idx in range(label_26.shape[2]):
+                        y_center = label_26[y_idx][x_idx][anchor_idx][1] * 416.0
+                        x_center = label_26[y_idx][x_idx][anchor_idx][0] * 416.0
+                        y_min = y_center - label_26[y_idx][x_idx][anchor_idx][3] * 416.0 / 2.0
+                        x_min = x_center - label_26[y_idx][x_idx][anchor_idx][2] * 416.0 / 2.0
+                        y_max = y_center + label_26[y_idx][x_idx][anchor_idx][3] * 416.0 / 2.0
+                        x_max = x_center + label_26[y_idx][x_idx][anchor_idx][2] * 416.0 / 2.0
+                        tl = (int(x_min), int(y_min))
+                        br = (int(x_max), int(y_max))
+                        # cv2.putText(img, str(int(box[4])), tl, font, 0.5, (255, 0, 0), 1)
+                        cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+
+            for y_idx in range(label_52.shape[0]):
+                for x_idx in range(label_52.shape[1]):
+                    for anchor_idx in range(label_52.shape[2]):
+                        y_center = label_52[y_idx][x_idx][anchor_idx][1] * 416.0
+                        x_center = label_52[y_idx][x_idx][anchor_idx][0] * 416.0
+                        y_min = y_center - label_52[y_idx][x_idx][anchor_idx][3] * 416.0 / 2.0
+                        x_min = x_center - label_52[y_idx][x_idx][anchor_idx][2] * 416.0 / 2.0
+                        y_max = y_center + label_52[y_idx][x_idx][anchor_idx][3] * 416.0 / 2.0
+                        x_max = x_center + label_52[y_idx][x_idx][anchor_idx][2] * 416.0 / 2.0
+                        tl = (int(x_min), int(y_min))
+                        br = (int(x_max), int(y_max))
+                        # cv2.putText(img, str(int(box[4])), tl, font, 0.5, (255, 0, 0), 1)
+                        cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+
+            cv2.imshow(str(counter), img)
         cv2.waitKey(0)
 
-        # font = cv2.FONT_HERSHEY_SIMPLEX
-        # for img in image_decoded:
-        #     img = (img * 255.0).astype(np.uint8)
-        #     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
-        #     for boxes in boxes_data_available:
-        #         for box in boxes:
-        #             tl = (int(box[0]), int(box[1]))
-        #             br = (int(box[2]), int(box[3]))
-        #             cv2.putText(img, str(int(box[4])), tl, font, 0.5, (255, 0, 0), 1)
-        #             cv2.rectangle(img, tl, br, (0, 0, 255), 2)
-        #
-        #     cv2.imshow('show', img)
-        # cv2.waitKey(0)
+
+
+
+
 
 
         # for ix in range(image_decoded.shape[0]):
@@ -91,10 +117,10 @@ class my_yolo3:
         #         for j in range(13):
         #             for n in range(3):
         #                 print(bbox_true_13[ix][i][j][2])
-        #                 x_min = bbox_true_13[ix][i][j][n][0] * 416.
-        #                 y_min = bbox_true_13[ix][i][j][n][1] * 416.
-        #                 x_max = x_min + bbox_true_13[ix][i][j][n][2] * 416.
-        #                 y_max = y_min + bbox_true_13[ix][i][j][n][3] * 416.
+        #                 x_min = (bbox_true_13[ix][i][j][n][0] -1) * 416.
+        #                 y_min = (bbox_true_13[ix][i][j][n][1] -1) * 416.
+        #                 x_max = (x_min + bbox_true_13[ix][i][j][n][2]) * 416.
+        #                 y_max = (y_min + bbox_true_13[ix][i][j][n][3]) * 416.
         #
         #                 tl = (int(x_min), int(y_min))
         #                 br = (int(x_max), int(y_max))
@@ -104,6 +130,22 @@ class my_yolo3:
         #     cv2.imshow(str(ix), img)
         # cv2.waitKey(0)
 
+
+
+        # counter = 0
+        # font = cv2.FONT_HERSHEY_SIMPLEX
+        # for img, boxes in zip(image_decoded, boxes_data_available):
+        #     counter += 1
+        #     img = (img * 255.0).astype(np.uint8)
+        #     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
+        #     for box in boxes:
+        #         tl = (int(box[0]), int(box[1]))
+        #         br = (int(box[2]), int(box[3]))
+        #         cv2.putText(img, str(int(box[4])), tl, font, 0.5, (255, 0, 0), 1)
+        #         cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+        #
+        #     cv2.imshow(str(counter), img)
+        # cv2.waitKey(0)
 
 
 

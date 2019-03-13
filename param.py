@@ -38,7 +38,7 @@ checkpoint_dir = '/media/yang/F/ubuntu/SD_GAN_Result' + save_dir+'checkpoint'  #
 
 num_gpus = 1
 epoch = 10
-batch_size = 1  # need to change
+batch_size = 4  # need to change
 num_classes = 80
 max_boxes = 20
 input_shape = 416

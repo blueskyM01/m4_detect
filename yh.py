@@ -43,5 +43,7 @@ npll = np.array([[-1, 2],
 npgg = np.array([[4, 9],
                  [77, 44],
                  [-9, 5]])
-for i in npgg:
-    print(i)
+a = [1,3,2]
+b = [6,7,8]
+for i,j in zip(a,b):
+    print(i,j)
