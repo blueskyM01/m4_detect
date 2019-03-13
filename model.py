@@ -50,8 +50,8 @@ class my_yolo3:
                               max_boxes=self.cfg.max_boxes, input_shape=self.cfg.input_shape, batch_size=self.cfg.batch_size,
                               epoch=self.cfg.epoch, buffer_size=10000)
         one_element, dataset_size = m4_DataReader.data_loader()
-        # image_decoded, boxes_data_available, bbox_true_13, bbox_true_26, bbox_true_52 = self.sess.run(one_element)
-        image_decoded, boxes_data_available = self.sess.run(one_element)
+        image_decoded, boxes_data_available, bbox_true_13, bbox_true_26, bbox_true_52 = self.sess.run(one_element)
+        # image_decoded, boxes_data_available = self.sess.run(one_element)
 
 
         print(boxes_data_available[0])

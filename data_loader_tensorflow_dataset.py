@@ -199,7 +199,7 @@ class m4_ReadData:
         bbox = tf.cond(tf.greater(tf.shape(bbox)[0], self.max_boxes), lambda: bbox[:self.max_boxes], lambda: tf.pad(bbox, paddings = [[0, self.max_boxes - tf.shape(bbox)[0]], [0, 0]], mode = 'CONSTANT'))
         return image, bbox
 
-    def Preprocess_true_boxes(self, true_boxes):
+    def Preprocess_true_boxes(self, true_boxes_):
         """
         Introduction
         ------------
@@ -209,6 +209,7 @@ class m4_ReadData:
         ----------
             true_boxes: ground truth box 形状为[boxes, 5], x_min, y_min, x_max, y_max, class_id
         """
+        true_boxes = true_boxes_.copy()
         num_layers = len(self.anchors) // 3
         anchor_mask = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
         # true_boxes = np.array(true_boxes, dtype='float32')
@@ -275,13 +276,12 @@ class m4_ReadData:
         image_decoded = tf.image.convert_image_dtype(image_decoded, dtype=tf.float32) # 0-1
         # 预处理图像
         pre_image, pre_boxes = self.m4_Preprocess(image_decoded, boxes_data_tensor_available) # input_shape x input_shape
+
         # make label of yolo
-        # bbox_true_13, bbox_true_26, bbox_true_52 = tf.py_func(self.Preprocess_true_boxes, [pre_boxes],
-        #                                                       [tf.float32, tf.float32, tf.float32])
+        bbox_true_13, bbox_true_26, bbox_true_52 = tf.py_func(self.Preprocess_true_boxes, [pre_boxes],
+                                                              [tf.float32, tf.float32, tf.float32])
 
-        # return pre_image, pre_boxes, bbox_true_13, bbox_true_26, bbox_true_52
-
-        return pre_image, pre_boxes
+        return pre_image, pre_boxes, bbox_true_13, bbox_true_26, bbox_true_52
 
 
     def data_loader(self):
