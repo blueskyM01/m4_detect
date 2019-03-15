@@ -39,7 +39,7 @@ class m4_ReadData:
         self.batch_size = batch_size
         self.epoch = epoch
         self.buffer_size = buffer_size
-
+        self.class_name = self.m4_get_classes(self.class_path)
         self.anchors = self.m4_get_anchors(self.anchors_path)
         class_names = self.m4_get_classes(self.class_path)
 
