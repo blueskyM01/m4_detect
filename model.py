@@ -14,28 +14,39 @@ class my_yolo3:
         self.sess = sess
         self.cfg = cfg
 
-        self.images = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 128, 128, 3], name='real_image')
-        self.labels = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 10575], name='id')
+        self.m4_DataReader = m4_ReadData(is_train=self.cfg.is_train, dataset_dir=self.cfg.dataset_dir,
+                                    dataset_name=self.cfg.dataset_name,
+                                    label_dir=self.cfg.datalabel_dir, label_name=self.cfg.datalabel_name,
+                                    anchors_path=self.cfg.achorfile_path, class_path=self.cfg.class_path,
+                                    num_classes=self.cfg.num_classes,
+                                    max_boxes=self.cfg.max_boxes, input_shape=self.cfg.input_shape,
+                                    batch_size=self.cfg.batch_size,
+                                    epoch=self.cfg.epoch, buffer_size=10000)
+        self.class_name = self.m4_DataReader.class_name
 
-        #
-        # m4_BE_GAN_model = m4_BE_GAN_network(self.sess, self.cfg, self.new_graph)
-        # m4_BE_GAN_model.build_model(self.images, self.labels, self.z, self.images_new_graph, self.shape_real, self.pose_real,
-        #                             self.expr_real)
+        self.images = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 416, 416, 3], name='input_image')
+        self.bbox_13 = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 13, 13, 3, 85], name='bbox_13')
+        self.bbox_26 = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 26, 26, 3, 85], name='bbox_26')
+        self.bbox_52 = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 52, 52, 3, 85], name='bbox_52')
+        m4_BE_GAN_model = m4_BE_GAN_network(self.sess, self.cfg)
+        m4_BE_GAN_model.build_model(self.images, self.bbox_13, self.bbox_26, self.bbox_52)
+        self.boxes_sum = m4_BE_GAN_model.boxes_sum
+
 
     def train(self):
-        # try:
-        #     self.saver = tf.train.Saver()
-        # except:
-        #     print('one model save error....')
-        # try:
-        #     tf.global_variables_initializer().run()
-        # except:
-        #     tf.initialize_all_variables().run()
-        #
-        # self.writer = tf.summary.FileWriter('{}/{}'.format(self.cfg.log_dir,
-        #                                                    time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))),
-        #                                                    self.sess.graph)
-        # merged = tf.summary.merge_all()
+        try:
+            self.saver = tf.train.Saver()
+        except:
+            print('one model save error....')
+        try:
+            tf.global_variables_initializer().run()
+        except:
+            tf.initialize_all_variables().run()
+
+        self.writer = tf.summary.FileWriter('{}/{}'.format(self.cfg.log_dir,
+                                                           time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))),
+                                                           self.sess.graph)
+        merged = tf.summary.merge_all()
 
         # load all train param
         # could_load, counter = self.load(self.cfg.checkpoint_dir, self.cfg.dataset_name)
@@ -44,16 +55,42 @@ class my_yolo3:
         # else:
         #     print(" [!] Load failed...")
 
-        m4_DataReader = m4_ReadData(is_train=self.cfg.is_train, dataset_dir=self.cfg.dataset_dir, dataset_name=self.cfg.dataset_name,
-                              label_dir=self.cfg.datalabel_dir, label_name=self.cfg.datalabel_name,
-                              anchors_path=self.cfg.achorfile_path, class_path=self.cfg.class_path, num_classes=self.cfg.num_classes,
-                              max_boxes=self.cfg.max_boxes, input_shape=self.cfg.input_shape, batch_size=self.cfg.batch_size,
-                              epoch=self.cfg.epoch, buffer_size=10000)
-        self.class_name = m4_DataReader.class_name
-        one_element, dataset_size = m4_DataReader.data_loader()
+        counter = 0
+        one_element, dataset_size = self.m4_DataReader.data_loader()
         image_decoded, boxes_data_available, bbox_true_13, bbox_true_26, bbox_true_52 = self.sess.run(one_element)
 
+
+        [merged_] = self.sess.run([merged], feed_dict={self.images: image_decoded,
+                                                       self.bbox_13: bbox_true_13,
+                                                       self.bbox_26: bbox_true_26,
+                                                       self.bbox_52: bbox_true_52})
+        [boxes_sum] = self.sess.run([self.boxes_sum], feed_dict={self.images: image_decoded,
+                                                                           self.bbox_13: bbox_true_13,
+                                                                           self.bbox_26: bbox_true_26,
+                                                                           self.bbox_52: bbox_true_52})
+
+        print(boxes_sum[0])
+        self.writer.add_summary(merged_, counter)
+        self.writer.flush()
+        print('add sunmmary once....')
+
+
         self.m4_PlotOnOriginalImageWithLabeledBox(image_decoded, bbox_true_13, bbox_true_26, bbox_true_52)
+
+        # print(conv2d_59.get_shape().as_list())
+        # print(conv2d_59.get_shape().as_list())
+        # print(conv2d_59.get_shape().as_list())
+        #
+        # model = yolo(config.norm_epsilon, config.norm_decay, config.anchors_path, config.classes_path, config.pre_train)
+        # bbox_true = [bbox_true_13, bbox_true_26, bbox_true_52]
+        # output = model.yolo_inference(images, config.num_anchors / 3, config.num_classes, is_training)
+        # loss = model.yolo_loss(output, bbox_true, model.anchors, config.num_classes, config.ignore_thresh)
+        # l2_loss = tf.losses.get_regularization_loss()
+
+
+
+
+
 
 
 

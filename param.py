@@ -32,9 +32,9 @@ datalabel_name = 'instances_train2017.json'
 achorfile_path = './yolo_anchors.txt'
 class_path = './coco_classes.txt'
 
-log_dir = '/media/yang/F/ubuntu/SD_GAN_Result' + save_dir+'logs'  # need to change
+log_dir = '/media/yang/F/ubuntu' + save_dir+'logs'  # need to change
 
-checkpoint_dir = '/media/yang/F/ubuntu/SD_GAN_Result' + save_dir+'checkpoint'  # need to change
+checkpoint_dir = '/media/yang/F/ubuntu' + save_dir+'checkpoint'  # need to change
 
 num_gpus = 1
 epoch = 10

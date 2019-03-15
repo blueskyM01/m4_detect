@@ -60,6 +60,7 @@ if __name__ == '__main__':
     with tf.Session(config=config) as sess:
         my_yolo3 = my_yolo3(sess, cfg)
         if cfg.is_train:
+            print('Training start....')
             if not os.path.exists(cfg.log_dir):
                 os.makedirs(cfg.log_dir)
             if not os.path.exists(cfg.checkpoint_dir):

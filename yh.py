@@ -41,9 +41,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'  # 指定第  块GPU可用
 npll = np.array([[-1, 2],
                  [2, 4]])
 npgg = np.array([[4, 9],
-                 [77, 44],
+                 [-77, 44],
                  [-9, 5]])
-a = [1,3,2]
-b = [6,7,8]
-for i,j in zip(a,b):
-    print(i,j)
+
+aa = np.argmax(npgg,axis=0)
+print(aa)
