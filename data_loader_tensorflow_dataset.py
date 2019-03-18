@@ -312,9 +312,9 @@ class m4_ReadData:
             dataset = tf.contrib.data.Dataset.from_tensor_slices((image_data_tensor, boxes_data_tensor))
 
         dataset = dataset.map(self.m4_parse_function)
-        # dataset = dataset.shuffle(self.buffer_size=10000).batch(self.batch_size).repeat(self.epoch)
+        dataset = dataset.shuffle(buffer_size = self.buffer_size).batch(self.batch_size).repeat(self.epoch)
 
-        dataset = dataset.batch(self.batch_size).repeat(self.epoch)
+        # dataset = dataset.batch(self.batch_size).repeat(self.epoch)
 
         iterator = dataset.make_one_shot_iterator()
         one_element = iterator.get_next()

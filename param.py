@@ -31,22 +31,23 @@ datalabel_dir = '/media/yang/F/DataSet/Tracking/annotations_trainval2017/annotat
 datalabel_name = 'instances_train2017.json'
 achorfile_path = './yolo_anchors.txt'
 class_path = './coco_classes.txt'
-
 log_dir = '/media/yang/F/ubuntu' + save_dir+'logs'  # need to change
-
 checkpoint_dir = '/media/yang/F/ubuntu' + save_dir+'checkpoint'  # need to change
 
 num_gpus = 1
-epoch = 10
-batch_size = 4  # need to change
+epoch = 20
+batch_size = 10  # need to change
 num_classes = 80
+num_anchors = 9
 max_boxes = 20
 input_shape = 416
 
-
-
+norm_epsilon = 1e-3
+norm_decay = 0.99
+lr = 0.001
+ignore_thresh = 0.5
 lr_lower_boundary = 0.00002
-add_summary_period = 10
+add_summary_period = 100
 savemodel_period = 1
 lr_drop_period = 1
 

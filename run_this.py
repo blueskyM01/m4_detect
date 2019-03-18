@@ -34,10 +34,16 @@ parser.add_argument("--num_gpus", default=param.num_gpus, type=int, help="num of
 parser.add_argument("--epoch", default=param.epoch, type=int, help="epoch")
 parser.add_argument("--batch_size", default=param.batch_size, type=int, help="batch size for one gpus")
 parser.add_argument("--num_classes", default=param.num_classes, type=int, help="number of classes")
+parser.add_argument("--num_anchors", default=param.num_anchors, type=int, help="number of anchors")
+
 parser.add_argument("--max_boxes", default=param.max_boxes, type=int, help="max boxes")
 parser.add_argument("--input_shape", default=param.input_shape, type=int, help="the width and height of image are all input_shape")
 
 parser.add_argument("--lr_lower_boundary", default=param.lr_lower_boundary, type=float, help="lower learning rate")
+parser.add_argument("--norm_epsilon", default=param.norm_epsilon, type=float, help="norm_epsilon")
+parser.add_argument("--norm_decay", default=param.norm_decay, type=float, help="norm_decay")
+parser.add_argument("--lr", default=param.lr, type=float, help="learning rate")
+parser.add_argument("--ignore_thresh", default=param.ignore_thresh, type=float, help="ignore thresh")
 
 
 

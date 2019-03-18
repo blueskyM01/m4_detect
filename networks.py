@@ -5,11 +5,12 @@ from ops import *
 from utils import *
 import time
 import importlib
+from yolo3_model import yolo
 
 #-----------------------------m4_BE_GAN_network-----------------------------
 #---------------------------------------------------------------------------
 slim = tf.contrib.slim
-class m4_BE_GAN_network:
+class m4_yolo_network:
     def __init__(self, sess, cfg):
         self.sess = sess
         self.cfg = cfg
@@ -19,28 +20,23 @@ class m4_BE_GAN_network:
 
     def build_model(self, images, bbox_true_13, bbox_true_26, bbox_true_52):
         self.m4_draw_box(images, bbox_true_13, bbox_true_26, bbox_true_52, 'input_box')
+        self.lr_ = tf.train.exponential_decay(self.cfg.lr, self.global_step, decay_steps=2000, decay_rate=0.8)
 
-        # self.g_lr_update = tf.assign(self.g_lr, tf.maximum(self.g_lr * 0.9, self.cfg.lr_lower_boundary), name='g_lr_update')
-        # self.d_lr_update = tf.assign(self.d_lr, tf.maximum(self.d_lr * 0.9, self.cfg.lr_lower_boundary), name='d_lr_update')
-        #
-        # self.op_g = tf.train.AdamOptimizer(learning_rate=self.g_lr)
-        # self.op_d = tf.train.AdamOptimizer(learning_rate=self.d_lr)
-        #
-
+        model = yolo(self.cfg.norm_epsilon, self.cfg.norm_decay, self.cfg.achorfile_path, self.cfg.class_path, False)
+        bbox_true = [bbox_true_13, bbox_true_26, bbox_true_52]
+        output = model.yolo_inference(images, self.cfg.num_anchors / 3, self.cfg.num_classes, self.cfg.is_train)
+        self.loss = model.yolo_loss(output, bbox_true, model.anchors, self.cfg.num_classes, self.cfg.ignore_thresh)
+        l2_loss = tf.losses.get_regularization_loss()
+        self.loss += l2_loss
 
         # image_fake_sum = tf.summary.image('image_fake', self.G, 3)
         # image_real_sum = tf.summary.image('image_real', images, 3)
-        # g_loss_sum = tf.summary.scalar('g_loss', self.g_loss)
-        # d_loss_sum = tf.summary.scalar('d_loss', self.d_loss)
-        # shape_loss_sum = tf.summary.scalar('shape_loss', self.shape_loss)
-        # expr_loss_sum = tf.summary.scalar('expr_loss', self.expr_loss)
-        # pose_loss_sum = tf.summary.scalar('pose_loss', self.pose_loss)
-        # id_loss_sum = tf.summary.scalar('id_loss', self.id_loss)
-        #
-        #
-        #
-        # self.g_optim = self.op_g.minimize(self.g_loss, var_list=self.g_vars)
-        # self.d_optim = self.op_d.minimize(self.d_loss, var_list=self.d_vars,global_step=self.global_step)
+        loss_sum = tf.summary.scalar('loss', self.loss)
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.lr_)
+        self.optim = optimizer.minimize(self.loss, global_step=self.global_step)
+
+
+
 
     def m4_get_true_boxes_available(self, bbox_true_13, bbox_true_26, bbox_true_52):
         '''
