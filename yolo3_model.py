@@ -298,28 +298,25 @@ class yolo:
         return [conv2d_59, conv2d_67, conv2d_75]
 
     def yolo_head(self, feats, anchors, num_classes, input_shape, training=True):
-        """
+        '''
         Introduction
         ------------
-            根据不同大小的feature map做多尺度的检测，三种feature map大小分别为13x13x1024, 26x26x512, 52x52x256
-        Parameters
-        ----------
-            feats: 输入的特征feature map
-            anchors: 针对不同大小的feature map的anchor
-            num_classes: 类别的数量
-            input_shape: 图像的输入大小，一般为416
-            trainging: 是否训练，用来控制返回不同的值
-        Returns
-        -------
-        """
+            根据不同大小的feature map做多尺度的检测，三种feature map大小分别为13x13x1024, 26x26x , 52x52x
+        :param feats: inferece传入的特征：[conv2d_59, conv2d_67, conv2d_75]——13x13x255, 26x26x255 , 52x52x255
+        :param anchors: 每个cell负责的anchors
+        :param num_classes: 检测多少个目标
+        :param input_shape: 本文416x416
+        :param training: 训练
+        :return:
+        '''
         num_anchors = len(anchors)
         anchors_tensor = tf.reshape(tf.constant(anchors, dtype=tf.float32), [1, 1, 1, num_anchors, 2])
-        grid_size = tf.shape(feats)[1:3]
+        grid_size = tf.shape(feats)[1:3] # tf.shape获取的是维度
         predictions = tf.reshape(feats, [-1, grid_size[0], grid_size[1], num_anchors, num_classes + 5])
-        # 这里构建13*13*1*2的矩阵，对应每个格子加上对应的坐标
+        # 这里构建grid * grid * 1 * 1的矩阵，对应每个格子加上对应的坐标
         grid_y = tf.tile(tf.reshape(tf.range(grid_size[0]), [-1, 1, 1, 1]), [1, grid_size[1], 1, 1])
         grid_x = tf.tile(tf.reshape(tf.range(grid_size[1]), [1, -1, 1, 1]), [grid_size[0], 1, 1, 1])
-        grid = tf.concat([grid_x, grid_y], axis=-1)
+        grid = tf.concat([grid_x, grid_y], axis=-1) # grid * grid * 1 * 2
         grid = tf.cast(grid, tf.float32)
         # 将x,y坐标归一化为占416的比例
         box_xy = (tf.sigmoid(predictions[..., :2]) + grid) / tf.cast(grid_size[::-1], tf.float32)
@@ -405,7 +402,7 @@ class yolo:
         iou = intersect_area / (box1_area + box2_area - intersect_area)
         return iou
 
-    def yolo_loss(self, yolo_output, y_true, anchors, num_classes, ignore_thresh=.5):
+    def yolo_loss(self, yolo_output, y_true, anchors, num_classes, ignore_thresh=.5, training=True):
         """
         Introduction
         ------------
@@ -432,10 +429,10 @@ class yolo:
             object_mask = y_true[index][..., 4:5]
             class_probs = y_true[index][..., 5:]
             grid, predictions, pred_xy, pred_wh = self.yolo_head(yolo_output[index], anchors[anchor_mask[index]],
-                                                                 num_classes, input_shape, training=True)
+                                                                 num_classes, input_shape, training=training)
             # pred_box的shape为[batch, grid_size, grid_size, 3, 4]
             pred_box = tf.concat([pred_xy, pred_wh], axis=-1)
-            raw_true_xy = y_true[index][..., :2] * grid_shapes[index][::-1] - grid
+            raw_true_xy = y_true[index][..., :2] * grid_shapes[index][::-1] - grid # 每个cell中的占比
             object_mask_bool = tf.cast(object_mask, dtype=tf.bool)
             raw_true_wh = tf.log(
                 tf.where(tf.equal(y_true[index][..., 2:4] / anchors[anchor_mask[index]] * input_shape[::-1], 0),

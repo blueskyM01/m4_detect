@@ -23,7 +23,7 @@ savemodel_period = 40
 
 # -----------------------------m4_BE_GAN_network-----------------------------
 gpu_assign = '0'
-is_train = True
+is_train = False
 save_dir = '/yolo_reslut/'
 dataset_dir = '/media/yang/F/DataSet/Tracking'
 dataset_name = 'train2017'
@@ -36,7 +36,7 @@ checkpoint_dir = '/media/yang/F/ubuntu' + save_dir+'checkpoint'  # need to chang
 
 num_gpus = 1
 epoch = 20
-batch_size = 10  # need to change
+batch_size = 1  # need to change
 num_classes = 80
 num_anchors = 9
 max_boxes = 20
@@ -46,6 +46,8 @@ norm_epsilon = 1e-3
 norm_decay = 0.99
 lr = 0.001
 ignore_thresh = 0.5
+obj_threshold = 0.3
+nms_threshold = 0.5
 lr_lower_boundary = 0.00002
 add_summary_period = 100
 savemodel_period = 1

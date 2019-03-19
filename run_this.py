@@ -44,7 +44,8 @@ parser.add_argument("--norm_epsilon", default=param.norm_epsilon, type=float, he
 parser.add_argument("--norm_decay", default=param.norm_decay, type=float, help="norm_decay")
 parser.add_argument("--lr", default=param.lr, type=float, help="learning rate")
 parser.add_argument("--ignore_thresh", default=param.ignore_thresh, type=float, help="ignore thresh")
-
+parser.add_argument("--obj_threshold", default=param.obj_threshold, type=float, help="obj thresh")
+parser.add_argument("--nms_threshold", default=param.nms_threshold, type=float, help="nms thresh")
 
 
 parser.add_argument("--savemodel_period", default=param.savemodel_period, type=int, help="savemodel_period")

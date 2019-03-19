@@ -38,11 +38,31 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'  # 指定第  块GPU可用
 # print(image_decoded[0])
 # print(boxes_data_tensor_available[0])
 
-npll = np.array([[-1, 2],
-                 [2, 4]])
-npgg = np.array([[4, 9],
-                 [-77, 44],
-                 [-9, 5]])
+# npll = np.array([[-1, 2],
+#                  [2, 4]])
+# npgg = np.array([[4, 9],
+#                  [-77, 44],
+#                  [-9, 5]])
+#
+# aa = np.argmax(npgg,axis=0)
+# print(aa)
+#
+# sess = tf.Session()
+# x = tf.constant([[[1, 2, 3],
+#                   [5, 6, 7],
+#                   [8, 0, 9]]])
+# b = tf.constant([[True, False, True]])
+#
+# c = tf.constant([[1],
+#                  [2],
+#                  [3]])
+#
+# result = tf.boolean_mask(x, b)
+# add_n = x + c
+#
+# print(sess.run(result))
+#
+# print(sess.run(add_n))
 
-aa = np.argmax(npgg,axis=0)
-print(aa)
+a = np.log(3)
+print(a)

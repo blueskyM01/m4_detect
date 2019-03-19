@@ -41,7 +41,7 @@ class m4_ReadData:
         self.buffer_size = buffer_size
         self.class_name = self.m4_get_classes(self.class_path)
         self.anchors = self.m4_get_anchors(self.anchors_path)
-        class_names = self.m4_get_classes(self.class_path)
+        # class_names = self.m4_get_classes(self.class_path)
 
 
 
@@ -312,7 +312,11 @@ class m4_ReadData:
             dataset = tf.contrib.data.Dataset.from_tensor_slices((image_data_tensor, boxes_data_tensor))
 
         dataset = dataset.map(self.m4_parse_function)
-        dataset = dataset.shuffle(buffer_size = self.buffer_size).batch(self.batch_size).repeat(self.epoch)
+        if self.is_train:
+            # dataset = dataset.shuffle(buffer_size = self.buffer_size).batch(self.batch_size).repeat(self.epoch)
+            dataset = dataset.batch(self.batch_size).repeat(self.epoch)
+        else:
+            dataset = dataset.batch(self.batch_size).repeat(self.epoch)
 
         # dataset = dataset.batch(self.batch_size).repeat(self.epoch)
 

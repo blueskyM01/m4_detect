@@ -9,6 +9,7 @@ from data_loader_tensorflow_dataset import *
 import time
 
 
+
 class my_yolo3:
     def __init__(self, sess, cfg):
         self.sess = sess
@@ -23,17 +24,29 @@ class my_yolo3:
                                     batch_size=self.cfg.batch_size,
                                     epoch=self.cfg.epoch, buffer_size=500)
         self.class_name = self.m4_DataReader.class_name
+        self.anchors = self.m4_DataReader.anchors
 
         self.images = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 416, 416, 3], name='input_image')
         self.bbox_13 = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 13, 13, 3, 85], name='bbox_13')
         self.bbox_26 = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 26, 26, 3, 85], name='bbox_26')
         self.bbox_52 = tf.placeholder(dtype=tf.float32, shape=[self.cfg.batch_size, 52, 52, 3, 85], name='bbox_52')
+        self.input_image_shape = tf.placeholder(dtype=tf.int32, shape=(2,))
         m4_yolo_model = m4_yolo_network(self.sess, self.cfg)
-        m4_yolo_model.build_model(self.images, self.bbox_13, self.bbox_26, self.bbox_52)
-        self.optim = m4_yolo_model.optim
-        self.loss = m4_yolo_model.loss
-        self.lr = m4_yolo_model.lr_
+        m4_yolo_model.build_model(self.images, self.bbox_13, self.bbox_26, self.bbox_52, self.input_image_shape)
         self.global_step = m4_yolo_model.global_step
+        if self.cfg.is_train:
+            self.optim = m4_yolo_model.optim
+            self.loss = m4_yolo_model.loss
+            self.lr = m4_yolo_model.lr_
+        else:
+            # self.boxes = m4_yolo_model.boxes
+            # self.scores = m4_yolo_model.scores
+            # self.classes = m4_yolo_model.class_names
+            self.box_confidence_list = m4_yolo_model.box_confidence_list
+            self.box_class_probs_list = m4_yolo_model.box_class_probs_list
+            self.pred_xy_list = m4_yolo_model.pred_xy_list
+            self.pred_wh_list = m4_yolo_model.pred_wh_list
+
 
     def train(self):
         try:
@@ -136,9 +149,6 @@ class my_yolo3:
         except:
             tf.initialize_all_variables().run()
 
-        # load 3DMM model
-        self.load_expr_shape_pose_param()
-
         # load all train param
         could_load, counter = self.load(self.cfg.checkpoint_dir, self.cfg.dataset_name)
         if could_load:
@@ -146,39 +156,71 @@ class my_yolo3:
         else:
             print(" [!] Load failed...")
 
-        one_element, dataset_size = data_loader(self.cfg.datalabel_dir, self.cfg.datalabel_name, self.cfg.dataset_dir,
-                                                self.cfg.dataset_name, self.cfg.batch_size, self.cfg.epoch)
-        batch_idxs = dataset_size // (self.cfg.batch_size)
-        batch_images_G, batch_labels_G = self.sess.run(one_element)
-        batch_z_G = np.random.uniform(-1, 1, [self.cfg.batch_size, self.cfg.z_dim]).astype(np.float32)
-        (shape_real_norm_G, expr_real_norm_G, pose_real_norm_G) = self.new_sess.run(
-            [self.shape_real_norm, self.expr_real_norm, self.pose_real_norm],
-            feed_dict={self.images_new_graph: batch_images_G})
-        counter = 0
+        one_element, dataset_size = self.m4_DataReader.data_loader()
+        image_decoded, boxes_data_available, bbox_true_13, bbox_true_26, bbox_true_52 = self.sess.run(one_element)
 
-        for idx in range(1, batch_idxs + 1):
+        box_confidence, box_class_probs, pred_xy,  pred_wh = self.sess.run([self.box_confidence_list[0], self.box_class_probs_list[0],
+                                                       self.pred_xy_list[0], self.pred_wh_list[0]],
+                                             feed_dict={self.images: image_decoded})
+
+        # anchors_1 = np.reshape(self.anchors[6, 7, 8], [1, 1, 3, 2])
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for img, confidence, class_probs, xy, wh in zip(image_decoded, box_confidence, box_class_probs, pred_xy, pred_wh):
             counter += 1
+            img = (img * 255.0).astype(np.uint8)
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # cv2默认为bgr顺序
+            for row in range(confidence.shape[0]):
+                for col in range(confidence.shape[1]):
+                    for anchor in range(3):
+                        if confidence[row][col][anchor][0] > 0.9:
+                            center_x = (xy[row][col][anchor][0]) * 416.0
+                            center_y = (xy[row][col][anchor][1]) * 416.0
 
-            batch_images, batch_labels = self.sess.run(one_element)
-            batch_z = np.random.uniform(-1, 1, [self.cfg.batch_size * self.cfg.num_gpus, self.cfg.z_dim]).astype(
-                np.float32)
-            if batch_images.shape[0] < self.cfg.batch_size * self.cfg.num_gpus:
-                for add_idx in range(self.cfg.batch_size * self.cfg.num_gpus - batch_images.shape[0]):
-                    batch_images = np.append(batch_images, batch_images[0:1], axis=0)
+                            x_min = center_x - wh[row][col][anchor][0] * 416. / 2.0
+                            y_min = center_y - wh[row][col][anchor][1] * 416. / 2.0
+                            x_max = center_x + wh[row][col][anchor][0] * 416. / 2.0
+                            y_max = center_y + wh[row][col][anchor][1] * 416. / 2.0
+                            if x_min < 0:
+                                x_min =0.
+                            if x_min > 415.:
+                                x_min = 415
+                            if y_min < 0:
+                                y_min =0.
+                            if y_min > 415.:
+                                y_min = 415
+                            if x_max < 0:
+                                x_max =0.
+                            if x_max > 415.:
+                                x_max = 415
+                            if y_max < 0:
+                                y_max =0.
+                            if y_max > 415.:
+                                y_max = 415
 
-            (shape_real_norm, expr_real_norm, pose_real_norm) = self.new_sess.run(
-                [self.shape_real_norm, self.expr_real_norm, self.pose_real_norm],
-                feed_dict={self.images_new_graph: batch_images})
+                            tl = (int(x_min), int(y_min))
+                            br = (int(x_max), int(y_max))
+                            print(tl)
+                            print(br)
+                            # cat = np.argmax(label_13[y_idx][x_idx][anchor_idx][5:])
+                            # cv2.putText(img, self.class_name[cat], tl, font, 0.5, (255, 0, 0), 1)
+                            cv2.rectangle(img, tl, br, (0, 0, 255), 2)
+            cv2.imshow(str(counter), img)
+        cv2.waitKey(0)
 
-            [samples] = self.sess.run([self.sampler], feed_dict={self.images: batch_images,
-                                                                 self.z: batch_z,
-                                                                 self.shape_real: shape_real_norm,
-                                                                 self.pose_real: pose_real_norm,
-                                                                 self.expr_real: expr_real_norm})
-            m4_image_save_cv(samples, '{}/test_{}.jpg'.format(self.cfg.test_sample_save_dir, counter))
-            print('save test_{}.jpg image.'.format(counter))
-            m4_image_save_cv(batch_images, '{}/original_{}.jpg'.format(self.cfg.test_sample_save_dir, counter))
-            print('save {}/original_{}.jpg'.format(self.cfg.test_sample_save_dir, counter))
+
+
+
+
+        print(box_confidence[0].shape)
+        print(box_class_probs[0].shape)
+        print(pred_xy[0].shape)
+        print(pred_wh[0].shape)
+
+        # self.m4_PlotOnOriginalImageWithLabeledBox(image_decoded, bbox_true_13, bbox_true_26, bbox_true_52)
+
+
+
 
     def save(self, checkpoint_dir, step, model_file_name):
         model_name = "GAN.model"
